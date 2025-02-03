@@ -1,0 +1,107 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>  
+<project>  
+  <actions/>  
+  <description>AC CYCLE System</description>  
+  <keepDependencies>false</keepDependencies>  
+  <properties>  
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.34">  
+      <autoRebuild>false</autoRebuild>  
+      <rebuildDisabled>false</rebuildDisabled>  
+    </com.sonyericsson.rebuild.RebuildSettings>  
+    <hudson.model.ParametersDefinitionProperty>  
+      <parameterDefinitions>  
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.11.0">  
+          <name>LABEL</name>  
+          <defaultValue/>  
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>  
+          <triggerIfResult>allCases</triggerIfResult>  
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>  
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>  
+        <hudson.model.StringParameterDefinition>  
+          <name>PROJECT</name>  
+          <trim>false</trim>  
+        </hudson.model.StringParameterDefinition>  
+        <hudson.model.StringParameterDefinition>  
+          <name>TEAM</name>  
+          <trim>false</trim>  
+        </hudson.model.StringParameterDefinition>  
+        <hudson.model.StringParameterDefinition>  
+          <name>SUT</name>  
+          <trim>false</trim>  
+        </hudson.model.StringParameterDefinition>  
+        <hudson.model.StringParameterDefinition>  
+          <name>PDU_USR</name>  
+          <trim>false</trim>  
+        </hudson.model.StringParameterDefinition>  
+        <hudson.model.PasswordParameterDefinition>  
+          <name>PDU_PWD</name>  
+          <defaultValue>REPLACE_WITH_PASSWORD</defaultValue>  
+        </hudson.model.PasswordParameterDefinition>  
+        <hudson.model.StringParameterDefinition>  
+          <name>RECIPIENT</name>  
+          <trim>false</trim>  
+        </hudson.model.StringParameterDefinition>  
+      </parameterDefinitions>  
+    </hudson.model.ParametersDefinitionProperty>  
+  </properties>  
+  <scm class="hudson.plugins.repo.RepoScm" plugin="repo@1.15.0">  
+    <manifestRepositoryUrl>https://example.com/repo.git</manifestRepositoryUrl>  
+    <manifestFile>framework/master.xml</manifestFile>  
+    <manifestBranch>$TEAM</manifestBranch>  
+    <jobs>0</jobs>  
+    <depth>0</depth>  
+    <currentBranch>true</currentBranch>  
+    <resetFirst>false</resetFirst>  
+    <cleanFirst>false</cleanFirst>  
+    <quiet>true</quiet>  
+    <forceSync>false</forceSync>  
+    <trace>false</trace>  
+    <showAllChanges>false</showAllChanges>  
+    <noTags>false</noTags>  
+    <manifestSubmodules>false</manifestSubmodules>  
+    <fetchSubmodules>false</fetchSubmodules>  
+    <ignoreProjects class="linked-hash-set">  
+      <string/>  
+    </ignoreProjects>  
+    <noCloneBundle>false</noCloneBundle>  
+    <worktree>false</worktree>  
+  </scm>  
+  <assignedNode>$LABEL</assignedNode>  
+  <canRoam>false</canRoam>  
+  <disabled>false</disabled>  
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>  
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>  
+  <triggers/>  
+  <concurrentBuild>true</concurrentBuild>  
+  <builders>  
+    <hudson.tasks.Shell>  
+      <command>repo sync   
+cd wrapper_framework  
+echo "VM_HOST_NAME=${VM_HOST_NAME}\nPDU_USR=${PDU_USR}\nPDU_PWD=${PDU_PWD}" &gt; .env.local    
+  
+./docker_run.sh sut_ac_cycle.py -s ${SUT} -p ${PROJECT}  
+EXIT_STATUS=$?  
+echo "Exit status : $EXIT_STATUS"  
+if [ "$EXIT_STATUS" -ne "0" ]  
+then  
+  exit 1  
+fi</command>  
+      <configuredLocalRules/>  
+    </hudson.tasks.Shell>  
+  </builders>  
+  <publishers>  
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">  
+      <recipients>$RECIPIENT</recipients>  
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>  
+      <sendToIndividuals>false</sendToIndividuals>  
+    </hudson.tasks.Mailer>  
+  </publishers>  
+  <buildWrappers>  
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.41">  
+      <deleteDirs>false</deleteDirs>  
+      <cleanupParameter/>  
+      <externalDelete/>  
+      <disableDeferredWipeout>false</disableDeferredWipeout>  
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>  
+  </buildWrappers>  
+</project>  
